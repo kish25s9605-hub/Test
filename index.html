@@ -20,9 +20,9 @@ h2 {margin:15px 0;}
 .name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:1px solid #000;font-size:16px;}
 
 /* 룰렛 */
-.roulette-container {margin:30px auto;width:90%;max-width:300px;height:300px;position:relative;}
+.roulette-container {margin:30px auto;width:300px;height:300px;position:relative;}
 #rouletteCanvas {width:100%;height:100%;}
-.pointer {width:0;height:0;border-left:25px solid transparent;border-right:25px solid transparent;border-top:50px solid red;position:absolute;bottom:-50px;left:calc(50% - 25px);}
+.pointer {width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:50px solid red;position:absolute;top:-50px;left:calc(50% - 20px);}
 
 /* 사다리 */
 .ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
@@ -138,6 +138,7 @@ const lcanvas=document.getElementById("ladderCanvas");
 const lctx=lcanvas.getContext("2d");
 let ladder=[];
 let ladderNames=[];
+let ladderResults=[];
 let animationInProgress=false;
 
 function startLadder(){
@@ -149,53 +150,58 @@ function startLadder(){
   document.getElementById("startLadderBtn").disabled=true;
   document.getElementById("ladderBackBtn").disabled=true;
   generateLadder(ladderNames.length);
+  ladderResults=[];
   drawLadder(true);
   runAllAnimations();
 }
 
 function generateLadder(count){
   ladder=[];
-  for(let i=0;i<count;i++) ladder.push({x:lcanvas.width/(count+1)*(i+1),bars:[]});
+  const canvasW = lcanvas.width;
+  const canvasH = lcanvas.height;
+  for(let i=0;i<count;i++) ladder.push({x:canvasW/(count+1)*(i+1),bars:[]});
   for(let i=0;i<count-1;i++){
-    const barCount = 1 + Math.floor(Math.random()*2); // 옆 이동 최소화
+    const barCount = 1 + Math.floor(Math.random()*2);
     for(let j=0;j<barCount;j++){
-      const y=Math.random()*(lcanvas.height-60)+30;
+      const y=Math.random()*(canvasH-60)+30;
       ladder[i].bars.push({y});
     }
   }
 }
 
 function drawLadder(hidden=false, people=[]){
-  lctx.clearRect(0,0,lcanvas.width,lcanvas.height);
-  lctx.fillStyle=hidden?"#bbb":"#eee";
-  lctx.fillRect(0,0,lcanvas.width,lcanvas.height);
-  lctx.strokeStyle="#000"; lctx.lineWidth=3;
+  const ctx=lctx;
+  ctx.clearRect(0,0,lcanvas.width,lcanvas.height);
+  ctx.fillStyle=hidden?"#bbb":"#eee";
+  ctx.fillRect(0,0,lcanvas.width,lcanvas.height);
+
+  ctx.strokeStyle="#000"; ctx.lineWidth=3;
   ladder.forEach(l=>{
-    lctx.beginPath(); lctx.moveTo(l.x,20); lctx.lineTo(l.x,lcanvas.height-20); lctx.stroke();
+    ctx.beginPath(); ctx.moveTo(l.x,20); ctx.lineTo(l.x,lcanvas.height-20); ctx.stroke();
   });
   ladder.forEach((l,i)=>{
     if(i>=ladder.length-1) return;
     l.bars.forEach(b=>{
-      lctx.beginPath(); lctx.moveTo(l.x,b.y); lctx.lineTo(ladder[i+1].x,b.y); lctx.stroke();
+      ctx.beginPath(); ctx.moveTo(l.x,b.y); ctx.lineTo(ladder[i+1].x,b.y); ctx.stroke();
     });
   });
+
   ladderNames.forEach((n,i)=>{
     const px=ladder[i].x;
-    lctx.fillStyle="#000"; lctx.font="16px Pretendard"; lctx.fillText(n,px-20,18);
+    ctx.fillStyle="#000"; ctx.font="16px Pretendard"; ctx.fillText(n,px-20,18);
   });
+
   people.forEach(p=>{
-    lctx.fillStyle="#f00"; lctx.beginPath(); lctx.arc(p.x,p.y,10,0,Math.PI*2); lctx.fill();
-    lctx.fillStyle="#000"; lctx.fillText(p.name,p.x-15,p.y-15);
+    ctx.fillStyle="#f00"; ctx.beginPath(); ctx.arc(p.x,p.y,10,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle="#000"; ctx.fillText(p.name,p.x-15,p.y-15);
   });
 }
 
 function runAllAnimations(){
   let index=0;
-  const results=[];
   function next(){
-    if(index>=ladderNames.length){showLadderResult(results); return;}
-    animatePerson(index,finalIndex=>{
-      results.push({name:ladderNames[index],pos:finalIndex});
+    if(index>=ladderNames.length){showLadderResult(); return;}
+    animatePerson(index,()=>{
       index++; setTimeout(next,200);
     });
   }
@@ -203,45 +209,49 @@ function runAllAnimations(){
 }
 
 function animatePerson(idx,done){
-  let x=ladder[idx].x; let y=20;
-  const person={x,y,name:ladderNames[idx]};
-  const speedX = 0.1; // 부드럽게 옆 이동
-  function step(){
-    let targetX = x;
-    for(let j=0;j<ladder.length-1;j++){
-      ladder[j].bars.forEach(b=>{
-        if(Math.abs(y-b.y)<3){
-          if(Math.random()<0.4) targetX = ladder[j+1].x;
-        }
-      });
-    }
-    x += (targetX - x) * speedX;
-    person.x = x; person.y = y;
-    drawLadder(false,[person]);
-    y+=2;
-    if(y<lcanvas.height-20) requestAnimationFrame(step);
-    else{
-      const finalIndex = idx===0?0:Math.floor(Math.random()*(ladder.length-1))+1;
-      done(finalIndex+1);
-      if(idx===ladderNames.length-1){
-        animationInProgress=false;
-        document.getElementById("startLadderBtn").disabled=false;
-        document.getElementById("ladderBackBtn").disabled=false;
+  const person={x:ladder[idx].x,y:20,name:ladderNames[idx],col:idx};
+  const path = [ladder[idx].x];
+  // 미리 사다리 경로 계산
+  for(let j=0;j<ladder.length-1;j++){
+    const bars = ladder[j].bars;
+    const bar = bars.length>0?bars[Math.floor(Math.random()*bars.length)]:null;
+    if(bar) path.push(ladder[j+1].x);
+    else path.push(path[path.length-1]);
+  }
+  path.push(path[path.length-1]); // 마지막 세로줄 도착
+  let stepY = 2;
+  let stepIndex = 0;
+
+  function move(){
+    if(person.y<lcanvas.height-20){
+      person.y += stepY;
+      const segmentHeight = lcanvas.height/(path.length+1);
+      if(person.y > segmentHeight*(stepIndex+1) && stepIndex<path.length-1){
+        stepIndex++;
       }
+      const targetX = path[stepIndex];
+      person.x += (targetX - person.x)*0.1; // 부드럽게 이동
+      drawLadder(false,[person]);
+      requestAnimationFrame(move);
+    } else {
+      ladderResults.push(person);
+      done();
     }
   }
-  step();
+  move();
 }
 
-function showLadderResult(results){
+function showLadderResult(){
   let html="<h2>🎉 사다리 결과</h2>";
-  results.forEach((r,i)=>{
-    html += (i===0)?`🎁 당첨 → ${r.name}<br>`:`❌ 꽝<br>`;
+  // 1명 당첨, 나머지 꽝
+  ladderResults.forEach((p,i)=>{
+    html += (i===0)?`🎁 당첨 → ${p.name}<br>`:`❌ 꽝<br>`;
   });
   document.getElementById("ladderResult").innerHTML=html;
+  animationInProgress=false;
+  document.getElementById("startLadderBtn").disabled=false;
+  document.getElementById("ladderBackBtn").disabled=false;
 }
 </script>
 </body>
 </html>
-
-
