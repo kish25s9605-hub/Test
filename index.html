@@ -15,7 +15,7 @@ h2 {margin:15px 0;}
 .back-btn {margin-top:20px;padding:10px 25px;font-size:16px;background:#555;border:none;border-radius:8px;color:white;cursor:pointer;}
 .name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:1px solid #000;font-size:16px;}
 .roulette-container {margin:30px auto;width:300px;height:300px;position:relative;}
-#rouletteCanvas {width:100%;height:100%;}
+#rouletteCanvas {width:100%;height:100%;border-radius:50%;}
 .pointer {width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:50px solid red;position:absolute;top:-50px;left:calc(50% - 20px);}
 .roulette-border {position:absolute;top:0;left:0;width:100%;height:100%;border:5px solid #000;border-radius:50%;pointer-events:none;box-sizing:border-box;}
 .ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
@@ -26,14 +26,12 @@ canvas {background:#eee;}
 
 <header>정하기 게임</header>
 
-<!-- 메인 -->
 <div id="main" class="page active">
   <h2>게임을 선택하세요</h2>
   <button class="menu-btn" onclick="showPage('roulette')">🎡 룰렛 정하기</button>
   <button class="menu-btn" onclick="showPage('ladder')">🎢 사다리 타기</button>
 </div>
 
-<!-- 룰렛 -->
 <div id="roulette" class="page">
   <h2>🎡 룰렛 정하기</h2>
   <input class="name-input" id="r1" placeholder="이름 1">
@@ -52,7 +50,6 @@ canvas {background:#eee;}
   <button class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
 </div>
 
-<!-- 사다리 -->
 <div id="ladder" class="page">
   <h2>🎢 사다리 타기</h2>
   <input class="name-input" id="l1" placeholder="이름 1">
@@ -132,10 +129,8 @@ function showRouletteWinner(names){
 // ---------------- 사다리 ----------------
 const lcanvas=document.getElementById("ladderCanvas");
 const lctx=lcanvas.getContext("2d");
-let ladder=[];
-let ladderNames=[];
-let ladderResults=[];
-let animationInProgress=false;
+let ladder=[], ladderNames=[], ladderResults=[], animationInProgress=false;
+let ladderEnd = []; // 끝 결과 (1명 당첨, 나머지 꽝)
 
 function startLadder(){
   if(animationInProgress) return;
@@ -147,17 +142,17 @@ function startLadder(){
   document.getElementById("ladderBackBtn").disabled=true;
   generateLadder(ladderNames.length);
   ladderResults=[];
+  generateEndResults();
   drawLadder(true);
   runAllAnimations();
 }
 
 function generateLadder(count){
   ladder=[];
-  const canvasW = lcanvas.width;
-  const canvasH = lcanvas.height;
+  const canvasW=lcanvas.width, canvasH=lcanvas.height;
   for(let i=0;i<count;i++) ladder.push({x:canvasW/(count+1)*(i+1),bars:[]});
   for(let i=0;i<count-1;i++){
-    const barCount = 1 + Math.floor(Math.random()*2);
+    const barCount=1+Math.floor(Math.random()*2);
     for(let j=0;j<barCount;j++){
       const y=Math.random()*(canvasH-60)+30;
       ladder[i].bars.push({y});
@@ -165,82 +160,61 @@ function generateLadder(count){
   }
 }
 
+function generateEndResults(){
+  ladderEnd = Array(ladderNames.length).fill("❌ 꽝");
+  ladderEnd[0] = "🎁 당첨"; // 1명 당첨
+  ladderEnd.sort(()=>Math.random()-0.5);
+}
+
 function drawLadder(hidden=false, people=[]){
   const ctx=lctx;
   ctx.clearRect(0,0,lcanvas.width,lcanvas.height);
   ctx.fillStyle=hidden?"#bbb":"#eee";
   ctx.fillRect(0,0,lcanvas.width,lcanvas.height);
-
   ctx.strokeStyle="#000"; ctx.lineWidth=3;
-  ladder.forEach(l=>{
-    ctx.beginPath(); ctx.moveTo(l.x,20); ctx.lineTo(l.x,lcanvas.height-20); ctx.stroke();
-  });
+  ladder.forEach(l=>{ctx.beginPath(); ctx.moveTo(l.x,20); ctx.lineTo(l.x,lcanvas.height-20); ctx.stroke();});
   ladder.forEach((l,i)=>{
     if(i>=ladder.length-1) return;
-    l.bars.forEach(b=>{
-      ctx.beginPath(); ctx.moveTo(l.x,b.y); ctx.lineTo(ladder[i+1].x,b.y); ctx.stroke();
-    });
+    l.bars.forEach(b=>{ctx.beginPath(); ctx.moveTo(l.x,b.y); ctx.lineTo(ladder[i+1].x,b.y); ctx.stroke();});
   });
-
-  ladderNames.forEach((n,i)=>{
-    const px=ladder[i].x;
-    ctx.fillStyle="#000"; ctx.font="16px Pretendard"; ctx.fillText(n,px-20,18);
-  });
-
-  people.forEach(p=>{
-    ctx.fillStyle="#f00"; ctx.beginPath(); ctx.arc(p.x,p.y,10,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle="#000"; ctx.fillText(p.name,p.x-15,p.y-15);
-  });
+  ladderNames.forEach((n,i)=>{ctx.fillStyle="#000"; ctx.font="16px Pretendard"; ctx.fillText(n,ladder[i].x-20,18);});
+  people.forEach(p=>{ctx.fillStyle="#f00"; ctx.beginPath(); ctx.arc(p.x,p.y,10,0,Math.PI*2); ctx.fill(); ctx.fillStyle="#000"; ctx.fillText(p.name,p.x-15,p.y-15);});
 }
 
 function runAllAnimations(){
   let index=0;
-  function next(){
-    if(index>=ladderNames.length){showLadderResult(); return;}
-    animatePerson(index,()=>{
-      index++; setTimeout(next,200);
-    });
-  }
+  function next(){if(index>=ladderNames.length){showLadderResult();return;} animatePerson(index,()=>{index++;setTimeout(next,200);});}
   next();
 }
 
 function animatePerson(idx,done){
-  const person={x:ladder[idx].x,y:20,name:ladderNames[idx],col:idx};
-  const path = [ladder[idx].x];
+  const person={x:ladder[idx].x,y:20,name:ladderNames[idx]};
+  const pathX=[ladder[idx].x];
   for(let j=0;j<ladder.length-1;j++){
-    const bars = ladder[j].bars;
-    const bar = bars.length>0?bars[Math.floor(Math.random()*bars.length)]:null;
-    if(bar) path.push(ladder[j+1].x);
-    else path.push(path[path.length-1]);
+    const bars=ladder[j].bars;
+    const bar=bars.length>0?bars[Math.floor(Math.random()*bars.length)]:null;
+    if(bar) pathX.push(ladder[j+1].x);
+    else pathX.push(pathX[pathX.length-1]);
   }
-  path.push(path[path.length-1]);
-  let stepY = 2;
-  let stepIndex = 0;
+  pathX.push(pathX[pathX.length-1]);
+  let stepY=2, stepIndex=0;
 
   function move(){
     if(person.y<lcanvas.height-20){
-      person.y += stepY;
-      const segmentHeight = lcanvas.height/(path.length+1);
-      if(person.y > segmentHeight*(stepIndex+1) && stepIndex<path.length-1){
-        stepIndex++;
-      }
-      const targetX = path[stepIndex];
-      person.x += (targetX - person.x)*0.1;
+      person.y+=stepY;
+      const segHeight=lcanvas.height/(pathX.length+1);
+      if(person.y>segHeight*(stepIndex+1)&&stepIndex<pathX.length-1) stepIndex++;
+      person.x+= (pathX[stepIndex]-person.x)*0.1;
       drawLadder(false,[person]);
       requestAnimationFrame(move);
-    } else {
-      ladderResults.push(person);
-      done();
-    }
+    } else {ladderResults.push(person); done();}
   }
   move();
 }
 
 function showLadderResult(){
   let html="<h2>🎉 사다리 결과</h2>";
-  ladderResults.forEach((p,i)=>{
-    html += (i===0)?`🎁 당첨 → ${p.name}<br>`:`❌ 꽝<br>`;
-  });
+  ladderResults.forEach((p,i)=>{html+= `${ladderEnd[i]} → ${p.name}<br>`;});
   document.getElementById("ladderResult").innerHTML=html;
   animationInProgress=false;
   document.getElementById("startLadderBtn").disabled=false;
