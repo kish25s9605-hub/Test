@@ -17,6 +17,7 @@ h2 {margin:15px 0;}
 .roulette-container {margin:30px auto;width:300px;height:300px;position:relative;}
 #rouletteCanvas {width:100%;height:100%;}
 .pointer {width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:50px solid red;position:absolute;top:-50px;left:calc(50% - 20px);}
+.roulette-border {position:absolute;top:0;left:0;width:100%;height:100%;border:5px solid #000;border-radius:50%;pointer-events:none;box-sizing:border-box;}
 .ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
 canvas {background:#eee;}
 </style>
@@ -45,6 +46,7 @@ canvas {background:#eee;}
   <div class="roulette-container">
     <canvas id="rouletteCanvas" width="300" height="300"></canvas>
     <div class="pointer"></div>
+    <div class="roulette-border"></div>
   </div>
   <div id="rouletteResult"></div>
   <button class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
@@ -98,6 +100,7 @@ function drawRoulette(names){
     ctx.restore();
   }
 }
+
 function spinRoulette(){
   let names=[r1.value.trim(),r2.value.trim(),r3.value.trim(),r4.value.trim(),r5.value.trim()].filter(n=>n);
   if(names.length<2){alert("최소 2명을 입력하세요.");return;}
@@ -117,6 +120,7 @@ function spinRoulette(){
   }
   requestAnimationFrame(animate);
 }
+
 function showRouletteWinner(names){
   const len = names.length;
   const arcDeg = 360 / len;
@@ -245,3 +249,4 @@ function showLadderResult(){
 </script>
 </body>
 </html>
+
