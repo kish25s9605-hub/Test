@@ -15,7 +15,7 @@ h2 {margin:15px 0;}
 .back-btn {margin-top:20px;padding:10px 25px;font-size:16px;background:#555;border:none;border-radius:8px;color:white;cursor:pointer;}
 .name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:1px solid #000;font-size:16px;}
 .roulette-container {margin:30px auto;width:300px;height:300px;position:relative;}
-#rouletteCanvas {width:100%;height:100%;border-radius:50%;}
+#rouletteCanvas {width:100%;height:100%;border-radius:50%;transition: transform 4s cubic-bezier(0.33,1,0.68,1);}
 .pointer {width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:50px solid red;position:absolute;top:-50px;left:calc(50% - 20px);}
 .ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
 canvas {background:#eee;}
@@ -25,14 +25,12 @@ canvas {background:#eee;}
 
 <header>정하기 게임</header>
 
-<!-- 메인 메뉴 -->
 <div id="main" class="page active">
   <h2>게임을 선택하세요</h2>
   <button class="menu-btn" onclick="showPage('roulette')">🎡 룰렛 정하기</button>
   <button class="menu-btn" onclick="showPage('ladder')">🎢 사다리 타기</button>
 </div>
 
-<!-- 룰렛 페이지 -->
 <div id="roulette" class="page">
   <h2>🎡 룰렛 정하기</h2>
   <input class="name-input" id="r1" placeholder="이름 1">
@@ -50,7 +48,6 @@ canvas {background:#eee;}
   <button class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
 </div>
 
-<!-- 사다리 타기 페이지 -->
 <div id="ladder" class="page">
   <h2>🎢 사다리 타기</h2>
   <input class="name-input" id="l1" placeholder="이름 1">
@@ -68,7 +65,7 @@ canvas {background:#eee;}
 </div>
 
 <script>
-// ---------- 페이지 전환 ----------
+// ---------- 페이지 ----------
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
@@ -108,27 +105,19 @@ function spinRoulette(){
   drawRoulette(names);
 
   const len=names.length;
-  const arcDeg=360/len;
   const winnerIndex=Math.floor(Math.random()*len);
-  const targetAngle=360 - winnerIndex*arcDeg - arcDeg/2;
-  const spins=6;
-  const totalRotate=360*spins + targetAngle;
-  const duration=4000;
-  const startTime=performance.now();
+  const arcDeg=360/len;
+  const rotateDeg=360*5 + (360 - winnerIndex*arcDeg - arcDeg/2);
+  const canvas=document.getElementById("rouletteCanvas");
+  canvas.style.transition="transform 4s cubic-bezier(0.33,1,0.68,1)";
+  canvas.style.transform=`rotate(${rotateDeg}deg)`;
 
-  function animate(time){
-    let t=time-startTime;
-    if(t>duration) t=duration;
-    const ease=1-Math.pow(1-t/duration,3);
-    rAngle=totalRotate*ease;
-    document.getElementById("rouletteCanvas").style.transform=`rotate(${rAngle}deg)`;
-    if(t<duration) requestAnimationFrame(animate);
-    else document.getElementById("rouletteResult").innerHTML=`<h2>🎉 결과: ${names[winnerIndex]}</h2>`;
-  }
-  requestAnimationFrame(animate);
+  setTimeout(()=>{
+    document.getElementById("rouletteResult").innerHTML=`<h2>🎉 결과: ${names[winnerIndex]}</h2>`;
+  },4000);
 }
 
-// ---------- 사다리 타기 ----------
+// ---------- 사다리 ----------
 const ladderCanvas=document.getElementById("ladderCanvas");
 const lctx=ladderCanvas.getContext("2d");
 let ladder=[], ladderNames=[], ladderResults=[], animationInProgress=false, ladderEnd=[];
