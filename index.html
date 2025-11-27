@@ -5,11 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>정하기 게임</title>
 <style>
-body {
-  margin:0;
-  font-family:"Pretendard","Noto Sans KR",sans-serif;
-  background:#fff; color:#000; text-align:center;
-}
+body {margin:0;font-family:"Pretendard","Noto Sans KR",sans-serif;background:#fff;color:#000;text-align:center;}
 header {padding:20px;background:#f0f0f0;border-bottom:3px solid #000;font-size:28px;font-weight:bold;}
 .page {display:none;padding:20px;}
 .active {display:block;}
@@ -37,6 +33,7 @@ canvas {background:#eee;}
 
 <header>정하기 게임</header>
 
+<!-- 메인 -->
 <div id="main" class="page active">
   <h2>게임을 선택하세요</h2>
   <button class="menu-btn" onclick="showPage('roulette')">🎡 룰렛 정하기</button>
@@ -160,7 +157,6 @@ function startLadder(){
   runAllAnimations();
 }
 
-// 각 게임마다 랜덤 사다리
 function generateLadder(count){
   ladder=[];
   for(let i=0;i<count;i++){
@@ -176,46 +172,29 @@ function generateLadder(count){
   }
 }
 
-// 사다리 그리기, 숨김 옵션
 function drawLadder(hidden=false, people=[]){
   lctx.clearRect(0,0,lcanvas.width,lcanvas.height);
-  // 배경
   lctx.fillStyle=hidden?"#bbb":"#eee";
   lctx.fillRect(0,0,lcanvas.width,lcanvas.height);
-  // 세로줄
-  lctx.strokeStyle="#000";
-  lctx.lineWidth=3;
+  lctx.strokeStyle="#000"; lctx.lineWidth=3;
   ladder.forEach(l=>{
-    lctx.beginPath();
-    lctx.moveTo(l.x,20); lctx.lineTo(l.x,lcanvas.height-20); lctx.stroke();
+    lctx.beginPath(); lctx.moveTo(l.x,20); lctx.lineTo(l.x,lcanvas.height-20); lctx.stroke();
   });
-  // 가로줄
   ladder.forEach((l,i)=>{
     if(i>=ladder.length-1) return;
     l.bars.forEach(b=>{
-      lctx.beginPath();
-      lctx.moveTo(l.x,b.y); lctx.lineTo(ladder[i+1].x,b.y);
-      lctx.stroke();
+      lctx.beginPath(); lctx.moveTo(l.x,b.y); lctx.lineTo(ladder[i+1].x,b.y); lctx.stroke();
     });
   });
-  // 이름 표시
   ladderNames.forEach((n,i)=>{
-    const px=ladder[i].x;
-    lctx.fillStyle="#000"; lctx.font="16px Pretendard";
-    lctx.fillText(n,px-20,18);
+    const px=ladder[i].x; lctx.fillStyle="#000"; lctx.font="16px Pretendard"; lctx.fillText(n,px-20,18);
   });
-  // 사람 표시
   people.forEach(p=>{
-    lctx.fillStyle="#f00";
-    lctx.beginPath();
-    lctx.arc(p.x,p.y,10,0,Math.PI*2);
-    lctx.fill();
-    lctx.fillStyle="#000";
-    lctx.fillText(p.name,p.x-15,p.y-15);
+    lctx.fillStyle="#f00"; lctx.beginPath(); lctx.arc(p.x,p.y,10,0,Math.PI*2); lctx.fill();
+    lctx.fillStyle="#000"; lctx.fillText(p.name,p.x-15,p.y-15);
   });
 }
 
-// 사람 순서대로 이동
 function runAllAnimations(){
   let index=0;
   const results=[];
@@ -223,34 +202,26 @@ function runAllAnimations(){
     if(index>=ladderNames.length){showLadderResult(results); return;}
     animatePerson(index,finalIndex=>{
       results.push({name:ladderNames[index],pos:finalIndex});
-      index++;
-      setTimeout(next,300);
+      index++; setTimeout(next,300);
     });
   }
   next();
 }
 
 function animatePerson(idx,done){
-  let x=ladder[idx].x;
-  let y=20;
+  let x=ladder[idx].x; let y=20;
   const person={x,y,name:ladderNames[idx]};
   function step(){
     const people=[person];
-    // 옆으로 이동 체크
     for(let j=0;j<ladder.length-1;j++){
       ladder[j].bars.forEach(b=>{
-        if(Math.abs(y-b.y)<3){
-          if(x===ladder[j].x) x=ladder[j+1].x;
-          else if(x===ladder[j+1].x) x=ladder[j].x;
-          person.x=x;
-        }
+        if(Math.abs(y-b.y)<3){ if(x===ladder[j].x) x=ladder[j+1].x; else if(x===ladder[j+1].x) x=ladder[j].x; person.x=x; }
       });
     }
-    person.y=y;
-    drawLadder(false,[person]);
+    person.y=y; drawLadder(false,[person]);
     y+=2;
     if(y<lcanvas.height-20) requestAnimationFrame(step);
-    else {
+    else{
       const finalIndex=ladder.findIndex(l=>l.x===x);
       done(finalIndex+1);
       if(idx===ladderNames.length-1){
