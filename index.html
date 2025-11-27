@@ -10,21 +10,13 @@ header {padding:20px;background:#f0f0f0;border-bottom:3px solid #000;font-size:2
 .page {display:none;padding:20px;}
 .active {display:block;}
 h2 {margin:15px 0;}
-
-/* 버튼 */
 .menu-btn {width:80%;max-width:280px;padding:15px;margin:15px auto;border:none;border-radius:12px;font-size:20px;background:#000;color:white;cursor:pointer;display:block;transition:0.25s;}
 .menu-btn:hover {background:#333;transform:scale(1.05);}
 .back-btn {margin-top:20px;padding:10px 25px;font-size:16px;background:#555;border:none;border-radius:8px;color:white;cursor:pointer;}
-
-/* 입력창 */
 .name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:1px solid #000;font-size:16px;}
-
-/* 룰렛 */
 .roulette-container {margin:30px auto;width:300px;height:300px;position:relative;}
 #rouletteCanvas {width:100%;height:100%;}
 .pointer {width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:50px solid red;position:absolute;top:-50px;left:calc(50% - 20px);}
-
-/* 사다리 */
 .ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
 canvas {background:#eee;}
 </style>
@@ -211,14 +203,13 @@ function runAllAnimations(){
 function animatePerson(idx,done){
   const person={x:ladder[idx].x,y:20,name:ladderNames[idx],col:idx};
   const path = [ladder[idx].x];
-  // 미리 사다리 경로 계산
   for(let j=0;j<ladder.length-1;j++){
     const bars = ladder[j].bars;
     const bar = bars.length>0?bars[Math.floor(Math.random()*bars.length)]:null;
     if(bar) path.push(ladder[j+1].x);
     else path.push(path[path.length-1]);
   }
-  path.push(path[path.length-1]); // 마지막 세로줄 도착
+  path.push(path[path.length-1]);
   let stepY = 2;
   let stepIndex = 0;
 
@@ -230,7 +221,7 @@ function animatePerson(idx,done){
         stepIndex++;
       }
       const targetX = path[stepIndex];
-      person.x += (targetX - person.x)*0.1; // 부드럽게 이동
+      person.x += (targetX - person.x)*0.1;
       drawLadder(false,[person]);
       requestAnimationFrame(move);
     } else {
@@ -243,7 +234,6 @@ function animatePerson(idx,done){
 
 function showLadderResult(){
   let html="<h2>🎉 사다리 결과</h2>";
-  // 1명 당첨, 나머지 꽝
   ladderResults.forEach((p,i)=>{
     html += (i===0)?`🎁 당첨 → ${p.name}<br>`:`❌ 꽝<br>`;
   });
