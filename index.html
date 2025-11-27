@@ -126,7 +126,7 @@ function showRouletteWinner(names){
   document.getElementById("rouletteResult").innerHTML=`<h2>🎉 결과: ${names[index]}</h2>`;
 }
 
-// ---------------- 사다리 타기 ----------------
+// ---------------- 사다리 ----------------
 const ladderCanvas=document.getElementById("ladderCanvas");
 const lctx=ladderCanvas.getContext("2d");
 let ladder=[], ladderNames=[], ladderResults=[], animationInProgress=false, ladderEnd=[];
@@ -221,3 +221,5 @@ function showLadderResult(){
 </script>
 </body>
 </html>
+
+
