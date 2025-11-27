@@ -5,51 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>정하기 게임</title>
 <style>
-/* ------------------- 기본 스타일 ------------------- */
-body {margin:0;font-family:"Pretendard","Noto Sans KR",sans-serif;background:#0d0d0d;color:#fff;text-align:center;}
-header {padding:20px;background:#1a1a1a;border-bottom:3px solid #ff7b00;font-size:28px;font-weight:bold;}
+body {
+  margin:0;
+  font-family:"Pretendard","Noto Sans KR",sans-serif;
+  background:#fff; color:#000; text-align:center;
+}
+header {padding:20px;background:#f0f0f0;border-bottom:3px solid #000;font-size:28px;font-weight:bold;}
 .page {display:none;padding:20px;}
 .active {display:block;}
 h2 {margin:15px 0;}
 
-/* ------------------- 버튼 ------------------- */
-.menu-btn {width:80%;max-width:280px;padding:15px;margin:15px auto;border:none;border-radius:12px;font-size:20px;background:#ff7b00;color:white;cursor:pointer;display:block;transition:0.25s;}
-.menu-btn:hover {background:#ffa64c;transform:scale(1.05);}
+/* 버튼 */
+.menu-btn {width:80%;max-width:280px;padding:15px;margin:15px auto;border:none;border-radius:12px;font-size:20px;background:#000;color:white;cursor:pointer;display:block;transition:0.25s;}
+.menu-btn:hover {background:#333;transform:scale(1.05);}
 .back-btn {margin-top:20px;padding:10px 25px;font-size:16px;background:#555;border:none;border-radius:8px;color:white;cursor:pointer;}
 
-/* ------------------- 입력창 ------------------- */
-.name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:none;font-size:16px;}
+/* 입력창 */
+.name-input {margin:8px;padding:10px;width:70%;max-width:250px;border-radius:8px;border:1px solid #000;font-size:16px;}
 
-/* ------------------- 룰렛 ------------------- */
+/* 룰렛 */
 .roulette-container {margin:30px auto;width:90%;max-width:300px;height:300px;position:relative;}
 #rouletteCanvas {width:100%;height:100%;}
-.pointer {
-  width:0;height:0;
-  border-left:25px solid transparent;
-  border-right:25px solid transparent;
-  border-bottom:50px solid red; /* 핀 높이 업 */
-  position:absolute;
-  top:-25px; /* 캔버스 위로 올라가도록 */
-  left:calc(50% - 25px);
-}
+.pointer {width:0;height:0;border-left:25px solid transparent;border-right:25px solid transparent;border-top:50px solid red;position:absolute;top:0;left:calc(50% - 25px);}
 
-/* ------------------- 사다리 ------------------- */
-.ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#111;border-radius:10px;overflow:hidden;}
-canvas {background:#111;}
+/* 사다리 */
+.ladder-container {margin:20px auto;width:95%;max-width:800px;height:450px;background:#ddd;border-radius:10px;overflow:hidden;position:relative;}
+canvas {background:#eee;}
 </style>
 </head>
 <body>
 
 <header>정하기 게임</header>
 
-<!-- 메인 페이지 -->
 <div id="main" class="page active">
   <h2>게임을 선택하세요</h2>
   <button class="menu-btn" onclick="showPage('roulette')">🎡 룰렛 정하기</button>
   <button class="menu-btn" onclick="showPage('ladder')">🎢 사다리 타기</button>
 </div>
 
-<!-- 룰렛 페이지 -->
+<!-- 룰렛 -->
 <div id="roulette" class="page">
   <h2>🎡 룰렛 정하기</h2>
   <input class="name-input" id="r1" placeholder="이름 1">
@@ -60,14 +54,14 @@ canvas {background:#111;}
   <br>
   <button class="menu-btn" onclick="spinRoulette()">🎯 돌리기</button>
   <div class="roulette-container">
-    <div class="pointer"></div>
     <canvas id="rouletteCanvas" width="300" height="300"></canvas>
+    <div class="pointer"></div>
   </div>
   <div id="rouletteResult"></div>
   <button class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
 </div>
 
-<!-- 사다리 타기 페이지 -->
+<!-- 사다리 -->
 <div id="ladder" class="page">
   <h2>🎢 사다리 타기</h2>
   <input class="name-input" id="l1" placeholder="이름 1">
@@ -76,42 +70,42 @@ canvas {background:#111;}
   <input class="name-input" id="l4" placeholder="이름 4 (선택)">
   <input class="name-input" id="l5" placeholder="이름 5 (선택)">
   <br>
-  <button class="menu-btn" onclick="startLadder()">게임 시작</button>
+  <button id="startLadderBtn" class="menu-btn" onclick="startLadder()">게임 시작</button>
   <div class="ladder-container">
     <canvas id="ladderCanvas" width="800" height="450"></canvas>
   </div>
   <div id="ladderResult"></div>
-  <button class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
+  <button id="ladderBackBtn" class="back-btn" onclick="showPage('main')">⬅ 메인으로</button>
 </div>
 
 <script>
-/* ------------------- 페이지 전환 ------------------- */
+// ---------------- 페이지 전환
 function showPage(id){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-/* ------------------- 룰렛 ------------------- */
-const colors=["#27ae60","#c0392b","#f1c40f","#2980b9","#e67e22"];
-let angle=0;
+// ---------------- 룰렛
+const rColors=["#27ae60","#c0392b","#f1c40f","#2980b9","#e67e22"];
+let rAngle=0;
 function drawRoulette(names){
-  const canvas=document.getElementById("rouletteCanvas");
-  const ctx=canvas.getContext("2d");
+  const c=document.getElementById("rouletteCanvas");
+  const ctx=c.getContext("2d");
   const len=names.length;
   const arc=(2*Math.PI)/len;
-  ctx.clearRect(0,0,300,300);
+  ctx.clearRect(0,0,c.width,c.height);
   for(let i=0;i<len;i++){
     ctx.beginPath();
-    ctx.fillStyle=colors[i];
-    ctx.moveTo(150,150);
-    ctx.arc(150,150,150,arc*i,arc*(i+1));
+    ctx.fillStyle=rColors[i];
+    ctx.moveTo(c.width/2,c.height/2);
+    ctx.arc(c.width/2,c.height/2,c.width/2,arc*i,arc*(i+1));
     ctx.fill();
     ctx.save();
-    ctx.translate(150,150);
+    ctx.translate(c.width/2,c.height/2);
     ctx.rotate(arc*(i+0.5));
     ctx.fillStyle="#000";
     ctx.font="16px Pretendard";
-    ctx.fillText(names[i],60,5);
+    ctx.fillText(names[i],c.width/4,5);
     ctx.restore();
   }
 }
@@ -121,18 +115,18 @@ function spinRoulette(){
   drawRoulette(names);
   const spinTime=Math.random()*2000+3000;
   const randomSpin=Math.random()*360;
-  const start=angle;
-  const end=angle+360*8+randomSpin;
+  const start=rAngle;
+  const end=rAngle+360*8+randomSpin;
   const startTime=performance.now();
-  function animate(time){
-    const t=time-startTime;
-    if(t<spinTime){
-      angle=-easeOut(t,start,end-start,spinTime);
-      document.getElementById("rouletteCanvas").style.transform=`rotate(${angle}deg)`;
+  function animate(t){
+    const time=t-startTime;
+    if(time<spinTime){
+      rAngle=-easeOut(time,start,end-start,spinTime);
+      document.getElementById("rouletteCanvas").style.transform=`rotate(${rAngle}deg)`;
       requestAnimationFrame(animate);
-    }else{
-      angle=-end;
-      document.getElementById("rouletteCanvas").style.transform=`rotate(${angle}deg)`;
+    } else {
+      rAngle=-end;
+      document.getElementById("rouletteCanvas").style.transform=`rotate(${rAngle}deg)`;
       showRouletteWinner(names);
     }
   }
@@ -141,69 +135,134 @@ function spinRoulette(){
 function easeOut(t,b,c,d){t/=d;return -c*t*(t-2)+b;}
 function showRouletteWinner(names){
   const arc=360/names.length;
-  const fixed=(angle%360+360)%360;
+  const fixed=(rAngle%360+360)%360;
   const idx=Math.floor((360-fixed)/arc);
   document.getElementById("rouletteResult").innerHTML=`<h2>🎉 결과: ${names[idx]}</h2>`;
 }
 
-/* ------------------- 사다리 ------------------- */
+// ---------------- 사다리
 const lcanvas=document.getElementById("ladderCanvas");
 const lctx=lcanvas.getContext("2d");
 let ladder=[];
 let ladderNames=[];
+let animationInProgress=false;
+
 function startLadder(){
+  if(animationInProgress) return;
   ladderNames=[l1.value.trim(),l2.value.trim(),l3.value.trim(),l4.value.trim(),l5.value.trim()].filter(n=>n);
-  if(ladderNames.length<2){alert("최소 2명 이상 입력해야 합니다.");return;}
-  if(ladderNames.length>5){alert("최대 5명까지만 가능합니다.");return;}
-  drawLadder(ladderNames.length);
+  if(ladderNames.length<2){alert("최소 2명 이상 입력!"); return;}
+  if(ladderNames.length>5){alert("최대 5명까지 가능합니다."); return;}
+  document.getElementById("startLadderBtn").disabled=true;
+  document.getElementById("ladderBackBtn").disabled=true;
+  animationInProgress=true;
+  generateLadder(ladderNames.length);
+  drawLadder(true);
   runAllAnimations();
 }
-function drawLadder(count){
-  lctx.clearRect(0,0,lcanvas.width,lcanvas.height);
-  const spacing=lcanvas.width/(count+1);
+
+// 각 게임마다 랜덤 사다리
+function generateLadder(count){
   ladder=[];
   for(let i=0;i<count;i++){
-    const x=spacing*(i+1);
+    const x=lcanvas.width/(count+1)*(i+1);
     ladder.push({x,bars:[]});
-    lctx.strokeStyle="#fff";lctx.lineWidth=3;lctx.beginPath();lctx.moveTo(x,20);lctx.lineTo(x,lcanvas.height-20);lctx.stroke();
   }
   for(let i=0;i<count-1;i++){
     const barCount=Math.floor(Math.random()*4)+2;
     for(let j=0;j<barCount;j++){
       const y=Math.random()*(lcanvas.height-60)+30;
       ladder[i].bars.push({y});
-      lctx.strokeStyle="#ff7b00";lctx.lineWidth=3;lctx.beginPath();lctx.moveTo(ladder[i].x,y);lctx.lineTo(ladder[i+1].x,y);lctx.stroke();
     }
   }
-  lctx.fillStyle="#ffdd96";lctx.font="18px Pretendard";
-  for(let i=0;i<count;i++){lctx.fillText(ladderNames[i],ladder[i].x-20,18);}
 }
+
+// 사다리 그리기, 숨김 옵션
+function drawLadder(hidden=false, people=[]){
+  lctx.clearRect(0,0,lcanvas.width,lcanvas.height);
+  // 배경
+  lctx.fillStyle=hidden?"#bbb":"#eee";
+  lctx.fillRect(0,0,lcanvas.width,lcanvas.height);
+  // 세로줄
+  lctx.strokeStyle="#000";
+  lctx.lineWidth=3;
+  ladder.forEach(l=>{
+    lctx.beginPath();
+    lctx.moveTo(l.x,20); lctx.lineTo(l.x,lcanvas.height-20); lctx.stroke();
+  });
+  // 가로줄
+  ladder.forEach((l,i)=>{
+    if(i>=ladder.length-1) return;
+    l.bars.forEach(b=>{
+      lctx.beginPath();
+      lctx.moveTo(l.x,b.y); lctx.lineTo(ladder[i+1].x,b.y);
+      lctx.stroke();
+    });
+  });
+  // 이름 표시
+  ladderNames.forEach((n,i)=>{
+    const px=ladder[i].x;
+    lctx.fillStyle="#000"; lctx.font="16px Pretendard";
+    lctx.fillText(n,px-20,18);
+  });
+  // 사람 표시
+  people.forEach(p=>{
+    lctx.fillStyle="#f00";
+    lctx.beginPath();
+    lctx.arc(p.x,p.y,10,0,Math.PI*2);
+    lctx.fill();
+    lctx.fillStyle="#000";
+    lctx.fillText(p.name,p.x-15,p.y-15);
+  });
+}
+
+// 사람 순서대로 이동
 function runAllAnimations(){
   let index=0;
   const results=[];
   function next(){
-    if(index>=ladderNames.length){showLadderResult(results);return;}
-    animatePerson(index,finalPos=>{results.push({name:ladderNames[index],pos:finalPos});index++;setTimeout(next,300);});
+    if(index>=ladderNames.length){showLadderResult(results); return;}
+    animatePerson(index,finalIndex=>{
+      results.push({name:ladderNames[index],pos:finalIndex});
+      index++;
+      setTimeout(next,300);
+    });
   }
   next();
 }
+
 function animatePerson(idx,done){
-  let x=ladder[idx].x;let y=20;
+  let x=ladder[idx].x;
+  let y=20;
+  const person={x,y,name:ladderNames[idx]};
   function step(){
-    lctx.clearRect(0,0,lcanvas.width,lcanvas.height);drawLadder(ladderNames.length);
-    lctx.fillStyle="#ff4444";lctx.beginPath();lctx.arc(x,y,10,0,Math.PI*2);lctx.fill();
+    const people=[person];
+    // 옆으로 이동 체크
     for(let j=0;j<ladder.length-1;j++){
-      for(let bar of ladder[j].bars){
-        if(Math.abs(y-bar.y)<3){if(x===ladder[j].x)x=ladder[j+1].x; else if(x===ladder[j+1].x)x=ladder[j].x;}
-      }
+      ladder[j].bars.forEach(b=>{
+        if(Math.abs(y-b.y)<3){
+          if(x===ladder[j].x) x=ladder[j+1].x;
+          else if(x===ladder[j+1].x) x=ladder[j].x;
+          person.x=x;
+        }
+      });
     }
+    person.y=y;
+    drawLadder(false,[person]);
     y+=2;
-    if(y<lcanvas.height-20){requestAnimationFrame(step);} else{
-      const finalIndex=ladder.findIndex(l=>l.x===x); done(finalIndex+1);
+    if(y<lcanvas.height-20) requestAnimationFrame(step);
+    else {
+      const finalIndex=ladder.findIndex(l=>l.x===x);
+      done(finalIndex+1);
+      if(idx===ladderNames.length-1){
+        animationInProgress=false;
+        document.getElementById("startLadderBtn").disabled=false;
+        document.getElementById("ladderBackBtn").disabled=false;
+      }
     }
   }
   step();
 }
+
 function showLadderResult(results){
   results.sort((a,b)=>a.pos-b.pos);
   let html="<h2>🎉 사다리 결과</h2>";
