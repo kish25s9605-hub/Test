@@ -157,7 +157,7 @@ function generateLadder(count){
   ladder=[];
   for(let i=0;i<count;i++) ladder.push({x:lcanvas.width/(count+1)*(i+1),bars:[]});
   for(let i=0;i<count-1;i++){
-    const barCount = 1 + Math.floor(Math.random()*2);
+    const barCount = 1 + Math.floor(Math.random()*2); // 옆 이동 최소화
     for(let j=0;j<barCount;j++){
       const y=Math.random()*(lcanvas.height-60)+30;
       ladder[i].bars.push({y});
@@ -205,7 +205,7 @@ function runAllAnimations(){
 function animatePerson(idx,done){
   let x=ladder[idx].x; let y=20;
   const person={x,y,name:ladderNames[idx]};
-  const speedX = 0.1;
+  const speedX = 0.1; // 부드럽게 옆 이동
   function step(){
     let targetX = x;
     for(let j=0;j<ladder.length-1;j++){
@@ -243,4 +243,5 @@ function showLadderResult(results){
 </script>
 </body>
 </html>
+
 
