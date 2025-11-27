@@ -102,15 +102,15 @@ function spinRoulette(){
   let names=[r1.value.trim(),r2.value.trim(),r3.value.trim(),r4.value.trim(),r5.value.trim()].filter(n=>n);
   if(names.length<2){alert("최소 2명을 입력하세요.");return;}
   drawRoulette(names);
-  const len = names.length;
-  const totalRot = 360*6 + Math.random()*360;
-  const duration = 4000;
-  const startTime = performance.now();
+  const len=names.length;
+  const totalRot=360*6+Math.random()*360;
+  const duration=4000;
+  const startTime=performance.now();
   function animate(time){
-    let t = time - startTime;
+    let t=time-startTime;
     if(t>duration) t=duration;
-    const ease = 1 - Math.pow(1-t/duration,3);
-    rAngle = totalRot * ease;
+    const ease=1-Math.pow(1-t/duration,3);
+    rAngle=totalRot*ease;
     document.getElementById("rouletteCanvas").style.transform=`rotate(${rAngle}deg)`;
     if(t<duration) requestAnimationFrame(animate);
     else showRouletteWinner(names);
@@ -119,37 +119,36 @@ function spinRoulette(){
 }
 
 function showRouletteWinner(names){
-  const len = names.length;
-  const arcDeg = 360 / len;
-  const rotated = rAngle % 360;
-  const index = Math.floor((360 - rotated + arcDeg/2) % 360 / arcDeg);
+  const len=names.length;
+  const arcDeg=360/len;
+  const rotated=rAngle%360;
+  const index=Math.floor((360-rotated+arcDeg/2)%360/arcDeg);
   document.getElementById("rouletteResult").innerHTML=`<h2>🎉 결과: ${names[index]}</h2>`;
 }
 
-// ---------------- 사다리 ----------------
-const lcanvas=document.getElementById("ladderCanvas");
-const lctx=lcanvas.getContext("2d");
-let ladder=[], ladderNames=[], ladderResults=[], animationInProgress=false;
-let ladderEnd = []; // 끝 결과 (1명 당첨, 나머지 꽝)
+// ---------------- 사다리 타기 ----------------
+const ladderCanvas=document.getElementById("ladderCanvas");
+const lctx=ladderCanvas.getContext("2d");
+let ladder=[], ladderNames=[], ladderResults=[], animationInProgress=false, ladderEnd=[];
 
 function startLadder(){
   if(animationInProgress) return;
   ladderNames=[l1.value.trim(),l2.value.trim(),l3.value.trim(),l4.value.trim(),l5.value.trim()].filter(n=>n);
-  if(ladderNames.length<2){alert("최소 2명 이상 입력!"); return;}
-  if(ladderNames.length>5){alert("최대 5명까지 가능합니다."); return;}
+  if(ladderNames.length<2){alert("최소 2명 이상 입력"); return;}
+  if(ladderNames.length>5){alert("최대 5명까지 가능"); return;}
   animationInProgress=true;
   document.getElementById("startLadderBtn").disabled=true;
   document.getElementById("ladderBackBtn").disabled=true;
   generateLadder(ladderNames.length);
-  ladderResults=[];
   generateEndResults();
+  ladderResults=[];
   drawLadder(true);
   runAllAnimations();
 }
 
 function generateLadder(count){
   ladder=[];
-  const canvasW=lcanvas.width, canvasH=lcanvas.height;
+  const canvasW=ladderCanvas.width, canvasH=ladderCanvas.height;
   for(let i=0;i<count;i++) ladder.push({x:canvasW/(count+1)*(i+1),bars:[]});
   for(let i=0;i<count-1;i++){
     const barCount=1+Math.floor(Math.random()*2);
@@ -161,18 +160,18 @@ function generateLadder(count){
 }
 
 function generateEndResults(){
-  ladderEnd = Array(ladderNames.length).fill("❌ 꽝");
-  ladderEnd[0] = "🎁 당첨"; // 1명 당첨
+  ladderEnd=Array(ladderNames.length).fill("❌ 꽝");
+  ladderEnd[0]="🎁 당첨";
   ladderEnd.sort(()=>Math.random()-0.5);
 }
 
 function drawLadder(hidden=false, people=[]){
   const ctx=lctx;
-  ctx.clearRect(0,0,lcanvas.width,lcanvas.height);
+  ctx.clearRect(0,0,ladderCanvas.width,ladderCanvas.height);
   ctx.fillStyle=hidden?"#bbb":"#eee";
-  ctx.fillRect(0,0,lcanvas.width,lcanvas.height);
+  ctx.fillRect(0,0,ladderCanvas.width,ladderCanvas.height);
   ctx.strokeStyle="#000"; ctx.lineWidth=3;
-  ladder.forEach(l=>{ctx.beginPath(); ctx.moveTo(l.x,20); ctx.lineTo(l.x,lcanvas.height-20); ctx.stroke();});
+  ladder.forEach(l=>{ctx.beginPath(); ctx.moveTo(l.x,20); ctx.lineTo(l.x,ladderCanvas.height-20); ctx.stroke();});
   ladder.forEach((l,i)=>{
     if(i>=ladder.length-1) return;
     l.bars.forEach(b=>{ctx.beginPath(); ctx.moveTo(l.x,b.y); ctx.lineTo(ladder[i+1].x,b.y); ctx.stroke();});
@@ -182,8 +181,8 @@ function drawLadder(hidden=false, people=[]){
 }
 
 function runAllAnimations(){
-  let index=0;
-  function next(){if(index>=ladderNames.length){showLadderResult();return;} animatePerson(index,()=>{index++;setTimeout(next,200);});}
+  let idx=0;
+  function next(){if(idx>=ladderNames.length){showLadderResult(); return;} animatePerson(idx,()=>{idx++; setTimeout(next,200);});}
   next();
 }
 
@@ -198,13 +197,12 @@ function animatePerson(idx,done){
   }
   pathX.push(pathX[pathX.length-1]);
   let stepY=2, stepIndex=0;
-
   function move(){
-    if(person.y<lcanvas.height-20){
+    if(person.y<ladderCanvas.height-20){
       person.y+=stepY;
-      const segHeight=lcanvas.height/(pathX.length+1);
+      const segHeight=ladderCanvas.height/(pathX.length+1);
       if(person.y>segHeight*(stepIndex+1)&&stepIndex<pathX.length-1) stepIndex++;
-      person.x+= (pathX[stepIndex]-person.x)*0.1;
+      person.x+=(pathX[stepIndex]-person.x)*0.1;
       drawLadder(false,[person]);
       requestAnimationFrame(move);
     } else {ladderResults.push(person); done();}
@@ -223,4 +221,3 @@ function showLadderResult(){
 </script>
 </body>
 </html>
-
